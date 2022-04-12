@@ -3,22 +3,35 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_mail import Mail
-from flask_blog.config import Config
+from flask_blog.config import Config, ProductionConfig, DevelopmentConfig, TestingConfig
 
 
-
+#database connection
 db = SQLAlchemy()
+
+#login manager
 bcrypt = Bcrypt()
 login_manager = LoginManager()
 login_manager.login_view = 'users.login'
+login_manager.login_message = 'Please log in to access this page.'
 login_manager.login_message_category = 'info'
+
+#email
 mail = Mail()
 
-
+#initialise app
 def create_app(config_class=Config):
     app = Flask(__name__)
-    app.config.from_object(Config)
     
+    if app.config['ENV'] == 'production':
+        app.config.from_object(ProductionConfig)
+    elif app.config['ENV'] == 'testing': 
+        app.config.from_object(TestingConfig)    
+    else:
+        app.config.from_object(DevelopmentConfig)
+    
+    
+    #initialize plugins
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
